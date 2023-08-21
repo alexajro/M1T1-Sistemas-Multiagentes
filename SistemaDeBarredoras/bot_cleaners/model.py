@@ -299,8 +299,6 @@ class Habitacion(Model):
             print("¡Todas las celdas están limpias! Terminando la simulación.")
             self.running = False  # Detiene la simulación
 
-            self.mostrar_graficas()
-
     def todoLimpio(self):
         for content, _ in self.grid.coord_iter():
             for obj in content:
