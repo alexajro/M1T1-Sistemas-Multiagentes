@@ -15,7 +15,7 @@ class Celda(Agent):
 class estacionCarga(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.ocupada = False #Para el uso al cargar los robots
+        self.ocupada = False # Para el uso al cargar los robots
 
 class Mueble(Agent):
     def __init__(self, unique_id, model):
@@ -30,9 +30,9 @@ class RobotLimpieza(Agent):
         self.carga = 100
         # Se agrega el umbral de recarga para regresar a estaciones de carga
         self.umbral_recarga = 40
-        #Utilizado para que el robot supiera donde se encuentran las estaciones de carga
+        # Utilizado para que el robot supiera donde se encuentran las estaciones de carga
         self.posiciones_estaciones_carga = []
-        #Utilizado para mapear la ruta por la que el robot pasara, ya sea para celda sucia o estacion de carga
+        # Utilizado para mapear la ruta por la que el robot pasara, ya sea para celda sucia o estacion de carga
         self.ruta_actual = [] 
 
     def limpiar_una_celda(self, lista_de_celdas_sucias):
@@ -50,20 +50,20 @@ class RobotLimpieza(Agent):
             # Ordenar las celdas sucias por distancia y moverse hacia la más cercana
             celdas_sucias.sort(key=lambda celda: self.calcular_distancia(self.pos, celda.pos))
             celda_mas_cercana = celdas_sucias[0]
-            #Llamado al metodo para calcular la ruta a seguir
+            # Llamado al metodo para calcular la ruta a seguir
             ruta_a_seguir = self.calcular_ruta(self.pos, celda_mas_cercana.pos)
-            #Teniendo la ruta, se ajusta el atributo de ruta actual para que el robot siga el camino
+            # Teniendo la ruta, se ajusta el atributo de ruta actual para que el robot siga el camino
             self.ruta_actual = ruta_a_seguir
         else:
             # Si no hay celdas sucias cercanas, moverse de manera aleatoria
             vecinos_disponibles = [vecino for vecino in vecinos if isinstance(vecino, Celda)]
             self.sig_pos = self.random.choice(vecinos_disponibles).pos
-    #Utilizado para encontrar puntos destino y tomar decisiones al momento de mapear una ruta
+    # Utilizado para encontrar puntos destino y tomar decisiones al momento de mapear una ruta
     def calcular_distancia(self, pos1, pos2):
         return np.sqrt((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)
 
     def calcular_ruta(self, inicio, final):
-        #Definiendo la ruta a seguir del robot
+        # Definiendo la ruta a seguir del robot
         # Dados los vecinos iniciales del robot, se va mapeando la ruta considerando al que se encuentra 
         # mas cercano al punto final hasta llegar al destino
         print("Calculando ruta a seguir. Posicion inicial: " + str(inicio) + " Posicion final: " + str(final) )
@@ -75,7 +75,7 @@ class RobotLimpieza(Agent):
             vecino_mas_cercano = None
             distancia_minima = float('inf')
             for vecino in lista_de_vecinos:
-                #Para evitar subirse a muebles o chocar con robots
+                # Para evitar subirse a muebles o chocar con robots
                 if isinstance(vecino, (RobotLimpieza, Mueble)):
                     pass
                 else:
@@ -94,8 +94,8 @@ class RobotLimpieza(Agent):
             print(ruta_a_seguir)
         return ruta_a_seguir
 
-    #Funcion que dadas las posiciones de las estaciones de carga, busca la que este mas cercana y que este disponible
-    #Para que posteriormente se calcule la ruta y se dirija hacia alla
+    # Funcion que dadas las posiciones de las estaciones de carga, busca la que este mas cercana y que este disponible
+    # Para que posteriormente se calcule la ruta y se dirija hacia alla
     def buscar_estacion_carga(self):
         self.ruta_actual = []
         print("Buscando estacion de carga")
@@ -117,14 +117,14 @@ class RobotLimpieza(Agent):
                     self.ruta_actual = ruta_minima
                     print("ruta encontrada")
                 if ruta_minima is not None:
-                    #al decidir por una estacion, se cambia el atributo de la estacion a ocupada (True)
+                    # al decidir por una estacion, se cambia el atributo de la estacion a ocupada (True)
                     self.marcar_estaciones_ocupada(estacion)
                     break
             else:
                 print("No hay estaciones de carga disponibles...Buscando nuevamente")
                 break  # Sal del bucle
 
-    #Funcion que verifica si la estacion de carga esta ocupada
+    # Funcion que verifica si la estacion de carga esta ocupada
     def estacion_ocupada(self, estacion):
         cell_contents = self.model.grid.get_cell_list_contents(estacion)
 
@@ -134,7 +134,7 @@ class RobotLimpieza(Agent):
                 print(agent.ocupada)
                 return agent.ocupada
 
-    #Funcion que marca la estacion de carga como ocupada (True)
+    # Funcion que marca la estacion de carga como ocupada (True)
     def marcar_estaciones_ocupada(self, estacion):
         cell_contents = self.model.grid.get_cell_list_contents(estacion)
 
@@ -143,7 +143,7 @@ class RobotLimpieza(Agent):
             if isinstance(agent, estacionCarga) :
                 agent.ocupada = True # Agregar a lista de estaciones ocupadas
 
-    #Funcion que marca la estacion de carga como desocupada (False)
+    # Funcion que marca la estacion de carga como desocupada (False)
     def marcar_estaciones_desocupada(self, estacion):
         cell_contents = self.model.grid.get_cell_list_contents(estacion)
 
@@ -151,7 +151,7 @@ class RobotLimpieza(Agent):
             # Realiza operaciones con el agente presente en la celda
             if isinstance(agent, estacionCarga) :
                 agent.ocupada = False # Agregar a lista de estaciones desocupadas
-    ### """
+    
     @staticmethod
     def buscar_celdas_sucia(lista_de_vecinos):
         celdas_sucias = list()
@@ -161,7 +161,7 @@ class RobotLimpieza(Agent):
         return celdas_sucias
 
     def step(self):
-                #Al llegar al umbral, se comienza con la busqueda de la estacion de carga
+                # Al llegar al umbral, se comienza con la busqueda de la estacion de carga
         if self.carga <= self.umbral_recarga:
             self.sig_pos = None
             self.buscar_estacion_carga()
@@ -175,7 +175,7 @@ class RobotLimpieza(Agent):
 
         celdas_sucias = self.buscar_celdas_sucia(vecinos)
 
-        #Al llegar al umbral, se comienza con la busqueda de la estacion de carga
+        # Al llegar al umbral, se comienza con la busqueda de la estacion de carga
         if self.carga <= self.umbral_recarga and self.ruta_actual != []:
             self.ruta_actual = []
             self.sig_pos = None
@@ -186,10 +186,10 @@ class RobotLimpieza(Agent):
             else:
                 self.limpiar_una_celda(celdas_sucias)
         
-        #Si esta en la estacion de carga, se permanecera ahi hasta llegar a carga completa
+        # Si esta en la estacion de carga, se permanecera ahi hasta llegar a carga completa
         if self.carga <= 100 and self.pos in self.posiciones_estaciones_carga:
             self.sig_pos = None
-            #Observando el datasheet de las baterías y los cargadores, sabes que a los robots
+            # Observando el datasheet de las baterías y los cargadores, sabes que a los robots
             # les toma dos (2) unidades de tiempo (steps) por un 50% de carga. 
             self.carga += 25
 
@@ -198,7 +198,7 @@ class RobotLimpieza(Agent):
             estaciones = self.posiciones_estaciones_carga
             for estacion in estaciones:
                 if estacion == self.pos:
-                    #Regresar estacion a disponible
+                    # Regresar estacion a disponible
                     self.marcar_estaciones_desocupada(estacion)
             self.seleccionar_nueva_pos()
 
@@ -246,7 +246,7 @@ class Habitacion(Model):
 
         posiciones_disponibles = [pos for _, pos in self.grid.coord_iter()]
 
-        #Posicionamiento de estaciones de carga 
+        # Posicionamiento de estaciones de carga 
         # Dividir la cuadrícula en cuatro cuadrantes para asegurar que haya 1 estacion de carga en cada cuadrante
         rows, cols = self.grid.width, self.grid.height
         mid_row = rows // 2
@@ -261,7 +261,7 @@ class Habitacion(Model):
 
         # Posicionamiento de estaciones de carga en cada cuadrante
         posiciones_estaciones_carga = []
-        #Tomar una posicion aleatoria dentro de cada cuadrante
+        # Tomar una posicion aleatoria dentro de cada cuadrante
         for cuadrante in cuadrantes:
             pos = self.random.choice(cuadrante)
             posiciones_estaciones_carga.append(pos)
