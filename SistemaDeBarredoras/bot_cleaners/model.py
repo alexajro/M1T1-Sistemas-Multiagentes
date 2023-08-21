@@ -97,6 +97,7 @@ class RobotLimpieza(Agent):
     #Funcion que dadas las posiciones de las estaciones de carga, busca la que este mas cercana y que este disponible
     #Para que posteriormente se calcule la ruta y se dirija hacia alla
     def buscar_estacion_carga(self):
+        self.ruta_actual = []
         print("Buscando estacion de carga")
         ruta_minima = None
         estaciones_disponibles = [
@@ -160,6 +161,10 @@ class RobotLimpieza(Agent):
         return celdas_sucias
 
     def step(self):
+                #Al llegar al umbral, se comienza con la busqueda de la estacion de carga
+        if self.carga <= self.umbral_recarga:
+            self.sig_pos = None
+            self.buscar_estacion_carga()
 
         vecinos = self.model.grid.get_neighbors(
             self.pos, moore=True, include_center=False)
@@ -171,28 +176,32 @@ class RobotLimpieza(Agent):
         celdas_sucias = self.buscar_celdas_sucia(vecinos)
 
         #Al llegar al umbral, se comienza con la busqueda de la estacion de carga
-        if self.carga <= self.umbral_recarga:
+        if self.carga <= self.umbral_recarga and self.ruta_actual != []:
+            self.ruta_actual = []
             self.sig_pos = None
             self.buscar_estacion_carga()
+        else: 
+            if len(celdas_sucias) == 0:
+                self.seleccionar_nueva_pos()
+            else:
+                self.limpiar_una_celda(celdas_sucias)
         
         #Si esta en la estacion de carga, se permanecera ahi hasta llegar a carga completa
         if self.carga <= 100 and self.pos in self.posiciones_estaciones_carga:
             self.sig_pos = None
-            self.carga += 15
+            #Observando el datasheet de las baterías y los cargadores, sabes que a los robots
+            # les toma dos (2) unidades de tiempo (steps) por un 50% de carga. 
+            self.carga += 25
 
-            if self.carga >= 100:
-                self.carga = 100
-                estaciones = self.posiciones_estaciones_carga
-                for estacion in estaciones:
-                    if estacion == self.pos:
-                        #Regresar estacion a disponible
-                        self.marcar_estaciones_desocupada(estacion)
-                self.seleccionar_nueva_pos()
-
-        if len(celdas_sucias) == 0:
+        if self.carga >= 100:
+            self.carga = 100
+            estaciones = self.posiciones_estaciones_carga
+            for estacion in estaciones:
+                if estacion == self.pos:
+                    #Regresar estacion a disponible
+                    self.marcar_estaciones_desocupada(estacion)
             self.seleccionar_nueva_pos()
-        else:
-            self.limpiar_una_celda(celdas_sucias)
+
         # Si se tiene una ruta definida, el robot seguirá avanzando sobre ella hasta terminar
         if self.ruta_actual:
             siguiente_paso = self.ruta_actual.pop(0)
@@ -204,6 +213,8 @@ class RobotLimpieza(Agent):
 
         if self.carga > 0:
             self.carga -= 1
+        elif self.carga == 0:
+            self.sig_pos = None
 
         if self.sig_pos is not None:
             cell_contents = self.model.grid.get_cell_list_contents(self.sig_pos)
